@@ -1,0 +1,7 @@
+data/
+submission/
+node_modules/
+*.log
+.env
+.env.*
+!.env.example

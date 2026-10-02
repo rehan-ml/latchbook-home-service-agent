@@ -1,0 +1,13 @@
+{
+  "name": "latchbook",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A voice-first home repair handoff agent with a real Streamable HTTP MCP server.",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=22" }
+}

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Latchbook turns a spoken home appliance problem into a cited, approval-first service brief through a real MCP tool workflow.">
+  <meta name="theme-color" content="#101c22">
+  <title>Latchbook — before the technician arrives</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Latchbook home"><span class="brand-symbol" aria-hidden="true">L<span>·</span></span><span>Latchbook</span></a>
+      <div class="topbar-right"><span class="topbar-note">A clearer path from problem to repair</span><span class="track-pill"><i></i> Alexa+ track simulator</span></div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-line"></span> A voice-first home service agent</p>
+          <h1 id="heroTitle">The problem is new.<br><em>The story shouldn't be.</em></h1>
+          <p class="hero-intro">“The washer is leaking again.” Latchbook remembers the appliance, finds the relevant home records, checks the recorded warranty date, and drafts a source-backed brief—before anyone calls a technician.</p>
+          <div class="hero-points"><span>01 &nbsp; Say what happened</span><span>02 &nbsp; Review the evidence</span><span>03 &nbsp; Approve the brief</span></div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="visual-orbit orbit-one"></div><div class="visual-orbit orbit-two"></div>
+          <div class="visual-card visual-voice"><span>VOICE INPUT</span><strong>“It's leaking again.”</strong><i></i></div>
+          <div class="visual-card visual-record"><span>HOME RECORD</span><strong>Sep 05 · prior incident</strong><small>Relevance found</small></div>
+          <div class="visual-card visual-case"><span>SERVICE CASE</span><strong>Cited. Clear. Approved.</strong><small>Nothing sent automatically</small></div>
+          <div class="visual-core">L<span>·</span></div>
+        </div>
+      </section>
+
+      <section class="trust-ribbon" aria-label="Product principles">
+        <div><strong>5</strong><span>tool steps per incident</span></div><div><strong>1</strong><span>explicit human approval</span></div><div><strong>0</strong><span>automatic bookings or messages</span></div>
+        <p>Built for a real MCP workflow. Demonstrated in a local Alexa+-style simulator—no device, account, or paid service.</p>
+      </section>
+
+      <section class="workspace" aria-labelledby="workspaceTitle">
+        <div class="workspace-heading"><div><p class="eyebrow">Try the experience</p><h2 id="workspaceTitle">A better handoff starts here.</h2></div><p>Use the fictional Harper home below, or add your own plain-text note. The voice button uses your browser when supported; typing always works.</p></div>
+        <div class="workspace-grid">
+          <div class="main-column">
+            <section class="conversation panel" aria-labelledby="conversationTitle">
+              <div class="panel-head"><div><span class="panel-kicker">01 / CONVERSATION</span><h3 id="conversationTitle">Ask Latchbook</h3></div><span class="connection-pill"><i></i> Local simulator</span></div>
+              <div id="messages" class="messages" aria-live="polite"><div class="message assistant"><span class="message-avatar">L</span><div><small>Latchbook</small><p>Tell me what happened at home. I'll check the records, cite what I found, and prepare a draft for your review. I won't contact anyone or book a visit.</p></div></div></div>
+              <div class="prompt-shelf"><span>TRY A SCENARIO</span><button type="button" data-prompt="The washer is leaking again">The washer is leaking again <b>↗</b></button><button type="button" data-prompt="The dishwasher will not drain">The dishwasher will not drain <b>↗</b></button><button type="button" data-prompt="What is the washer case status?">Check case status <b>↗</b></button></div>
+              <form id="composer" class="composer"><label class="sr-only" for="utterance">Describe a home appliance problem</label><input id="utterance" autocomplete="off" maxlength="500" placeholder="Describe what happened at home…" required><button id="voiceButton" class="voice-button" type="button" title="Speak with browser speech recognition" aria-label="Use microphone">◉</button><button class="send-button" type="submit" aria-label="Send request">↗</button></form>
+              <p id="composerError" class="form-error" role="alert"></p>
+            </section>
+
+            <section id="casePanel" class="case-panel panel hidden" aria-labelledby="caseTitle">
+              <div class="panel-head"><div><span class="panel-kicker">02 / ACTIONABLE OUTPUT</span><h3 id="caseTitle">Service case</h3></div><span id="caseStatus" class="status-pill"></span></div>
+              <div class="case-head"><div><span id="caseId" class="case-id"></span><h4 id="caseAppliance"></h4><p id="caseSymptom"></p></div><div class="case-approval"><span>HUMAN CHECKPOINT</span><strong id="approvalState">Waiting for approval</strong></div></div>
+              <div class="case-grid"><div><h5>Evidence receipt</h5><div id="sourceList" class="source-list"></div></div><div><h5>Agent tool trail</h5><ol id="toolTrace" class="tool-trace"></ol></div></div>
+              <div class="case-actions"><button id="approveButton" type="button" class="primary-button">Review & approve brief <span>↗</span></button><button id="copyButton" type="button" class="outline-button" disabled>Copy approved brief</button><button id="closeButton" type="button" class="text-button" disabled>Mark resolved</button></div>
+              <p class="case-disclaimer">A recorded warranty date is not a provider coverage decision. Latchbook does not diagnose, repair, contact a provider, or book a visit.</p>
+            </section>
+          </div>
+
+          <aside class="side-column">
+            <section class="home-panel panel" aria-labelledby="homeTitle"><div class="panel-head"><div><span class="panel-kicker">THE LOCAL HOME</span><h3 id="homeTitle">Harper home</h3></div><span class="home-icon">⌂</span></div><div id="appliances" class="appliance-list"></div><div class="mini-stat-row"><div><strong id="recordCount">—</strong><span>local records</span></div><div><strong id="caseCount">—</strong><span>service cases</span></div></div></section>
+            <section class="record-panel panel" aria-labelledby="recordTitle"><div class="panel-head"><div><span class="panel-kicker">MAKE IT YOURS</span><h3 id="recordTitle">Add a home note</h3></div><span class="record-icon">＋</span></div><p>Paste a short excerpt from a manual or service note. It stays in this local demo and can be cited in the next case.</p><form id="recordForm"><label for="recordAppliance">Appliance</label><select id="recordAppliance"><option value="washer">Northstar washer</option><option value="dishwasher">Cedarline dishwasher</option></select><label for="recordTitleInput">Title</label><input id="recordTitleInput" maxlength="120" placeholder="e.g. My service note" required><label for="recordText">Plain-text record</label><textarea id="recordText" maxlength="4000" rows="4" placeholder="Paste a detail you want Latchbook to remember…" required></textarea><button class="outline-button full-width" type="submit">Save local record <span>↗</span></button><p id="recordMessage" class="form-feedback" role="status"></p></form></section>
+            <section class="activity-panel panel" aria-labelledby="activityTitle"><div class="panel-head"><div><span class="panel-kicker">ACCOUNTABILITY</span><h3 id="activityTitle">Decision trail</h3></div><span class="activity-icon">◎</span></div><div id="events" class="event-list"><p class="empty-state">No action yet. A draft will appear here.</p></div><button id="resetButton" type="button" class="reset-button">Reset fictional demo</button></section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="underhood"><div><p class="eyebrow">Why this is an agent</p><h2>Not another answer.<br><em>A better next step.</em></h2></div><div class="underhood-grid"><article><span>01</span><h3>Retrieves</h3><p>Finds the appliance and relevant local records with source IDs.</p></article><article><span>02</span><h3>Cross-checks</h3><p>Compares the recorded warranty date and past service history.</p></article><article><span>03</span><h3>Drafts</h3><p>Creates a persistent case without inventing a diagnosis or contacting anyone.</p></article><article><span>04</span><h3>Waits</h3><p>A person approves before the brief becomes shareable.</p></article></div></section>
+    </main>
+    <footer><div class="brand"><span class="brand-symbol">L<span>·</span></span><span>Latchbook</span></div><p>Built for the Amazon Developer Hackathon · Alexa+ track. This is an independently built simulator and MCP server, not a deployed Alexa+ add-on.</p></footer>
+  </div>
+
+  <dialog id="approveDialog" class="action-dialog"><form id="approveForm" method="dialog"><span class="panel-kicker">HUMAN CHECKPOINT</span><h3>Approve this brief?</h3><p>Approval marks the local case ready to copy. It does not send anything or schedule service.</p><label for="confirmedBy">Your name</label><input id="confirmedBy" value="Maya" maxlength="100" required><div><button type="button" class="outline-button" data-close-dialog="approveDialog">Cancel</button><button type="submit" class="primary-button">Approve local brief</button></div></form></dialog>
+  <dialog id="closeDialog" class="action-dialog"><form id="closeForm" method="dialog"><span class="panel-kicker">CLOSE THE LOOP</span><h3>What happened?</h3><p>Record the outcome in the local decision trail.</p><label for="caseOutcome">Outcome</label><textarea id="caseOutcome" maxlength="500" rows="3" required placeholder="e.g. A technician replaced the seal."></textarea><div><button type="button" class="outline-button" data-close-dialog="closeDialog">Cancel</button><button type="submit" class="primary-button">Mark resolved</button></div></form></dialog>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
