@@ -12,6 +12,58 @@ The product addresses the messy moment *before* service: people repeat a problem
 
 The simulator's natural-language router is intentionally narrow and deterministic—no paid model or hidden cloud service. The actual Alexa+-track integration is the MCP server, whose tools can be discovered and invoked by a compatible MCP client. The simulator demonstrates the intended voice + visual experience without pretending to be the restricted Alexa+ preview toolkit.
 
+## At a glance
+
+| Capability | Implementation |
+|---|---|
+| Alexa+ track technology | Self-hosted MCP Streamable HTTP endpoint using protocol `2025-11-25` |
+| Agent workflow | Five sequential tool calls from appliance identification to persistent case draft |
+| Available tools | Eight discoverable MCP tools with JSON Schema inputs and structured output |
+| Memory | Persistent household records, service cases, approval state, and event history |
+| Provenance | Every case carries record IDs, excerpts, and a visible tool trail |
+| Human control | Speech or text cannot approve a case; the export route also enforces approval |
+| Cost | No API key, runtime dependency, account, cloud service, or physical device |
+| Verification | Eleven automated protocol, security, persistence, and workflow tests |
+
+## How the workflow fits together
+
+```mermaid
+flowchart LR
+    A[Voice or typed observation] --> B[Find appliance]
+    B --> C[Retrieve local records]
+    C --> D[Check recorded warranty date]
+    D --> E[Read prior case state]
+    E --> F[Draft cited service case]
+    F --> G{Human review}
+    G -->|Approve| H[Copyable service brief]
+    G -->|Do not approve| I[Draft remains local]
+```
+
+This is deliberately a handoff workflow rather than an automated repair or marketplace flow. The agent compiles what the household knows, preserves uncertainty, and stops at the point where a person should decide what happens next.
+
+## Tool catalogue
+
+| Tool | Purpose | Effect |
+|---|---|---|
+| `find_appliance` | Resolve a household appliance by name, kind, or model | Read only |
+| `search_home_records` | Retrieve relevant manual, warranty, incident, and user-note evidence | Read only |
+| `check_warranty` | Compare today with the locally recorded warranty end date | Read only; never decides coverage |
+| `list_service_cases` | Read persistent draft, approved, and closed cases | Read only |
+| `draft_service_case` | Create a case using an observed symptom and valid record IDs | Local state only |
+| `approve_service_case` | Mark a reviewed draft ready to copy | Requires explicit human confirmation |
+| `close_service_case` | Save the user-provided resolution of an approved case | Requires explicit human confirmation |
+| `add_home_record` | Add a user-provided plain-text note for later retrieval | Local state only |
+
+## Why the approval boundary matters
+
+Latchbook deals with information that can affect safety, service costs, and warranty expectations. It therefore separates three kinds of information:
+
+- **Observed:** what the person says happened.
+- **Recorded:** what a local manual excerpt, note, date, or prior incident says.
+- **Verified:** what a qualified provider would still need to confirm.
+
+The agent never converts recorded information into a diagnosis or coverage promise. It cannot approve a case from a spoken phrase, and the server refuses to export a draft even if someone bypasses the visible interface.
+
 ## Run at zero software cost
 
 Requires Node.js 22 or newer. No `npm install` is necessary because the application has no runtime dependencies.
@@ -28,6 +80,22 @@ npm test
 
 The tests verify MCP initialization, tool discovery and invocation, strict local-origin/version handling, the five-tool agent sequence, persistence, citations, warranty caveats, approval gating, and user-added record retrieval.
 
+### Test coverage
+
+The suite exercises the real HTTP server and isolated temporary data stores. It verifies:
+
+- MCP `2025-11-25` negotiation, initialization notification, tool discovery, and tool calls.
+- Local `Host`, `Origin`, content type, `Accept`, and protocol-version enforcement.
+- The same persistent workflow through the simulator API.
+- Five-step orchestration with cited evidence.
+- Approval-gated export and protection against double approval.
+- Warranty-date caveats without coverage promises.
+- Retrieval of newly added user records.
+- Cross-turn case memory and explicit reset behavior.
+- Duplicate-draft prevention for repeated reports.
+- Refusal of external booking/contact requests without state mutation.
+- Rejection of evidence belonging to a different appliance.
+
 ## MCP connection
 
 - Endpoint: `http://127.0.0.1:8787/mcp`
@@ -38,6 +106,16 @@ The tests verify MCP initialization, tool discovery and invocation, strict local
 - Tools: `find_appliance`, `search_home_records`, `check_warranty`, `list_service_cases`, `draft_service_case`, `approve_service_case`, `close_service_case`, `add_home_record`
 
 The server requires both `application/json` and `text/event-stream` in the MCP POST `Accept` header, accepts the protocol-version header after initialization, returns 202 for the initialized notification, and returns 405 for GET because it does not offer SSE. It validates local `Host` and `Origin` headers; it is **not** a publicly hosted multi-user service.
+
+## Reliability and local security
+
+- The HTTP server binds to `127.0.0.1` rather than all network interfaces.
+- Local host and same-origin checks reduce cross-origin and DNS-rebinding risk.
+- Requests are JSON-only and capped at 32 KB.
+- Static responses include a restrictive Content Security Policy, no-referrer policy, and MIME sniffing protection.
+- Store mutations are serialized, written to a temporary file, and atomically renamed.
+- Runtime household data and environment files are excluded from Git.
+- Sample appliances, documents, incidents, and dates are explicitly fictional.
 
 See [architecture](docs/ARCHITECTURE.md) for the trust boundary and [hackathon audit](docs/HACKATHON_AUDIT.md) for exact submission requirements.
 
