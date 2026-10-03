@@ -25,3 +25,15 @@ Sources: [overview](https://amazonappdev2026.devpost.com/), [official rules](htt
 ## How to verify the implementation
 
 Run `npm test` for the HTTP protocol and workflow checks, then `npm start` for the simulator and MCP endpoint. The local app needs no API key, paid hosting, or physical device. The demo video and final Devpost form are separate submission materials; neither is claimed to be part of this repository.
+
+## Friction log
+
+### Validating an Alexa+ MCP integration without preview tooling
+
+- **Task attempted:** Build and validate the Alexa+ track integration path for a stateful, approval-gated home-service agent.
+- **Steps taken:** Reviewed the official track rules, resources, FAQ, and updates; checked the available Alexa+ developer paths; then implemented the permitted self-hosted MCP Streamable HTTP option using protocol version `2025-11-25`.
+- **Expected result:** A publicly accessible Alexa+ conformance example or simulator that could exercise MCP initialization, tool discovery, calls, persistent state, and human-approval behavior end to end.
+- **Actual result:** The Alexa+ Category SDK, MCP Toolkit, CLI, and Web Simulator were not available to entrants. The public MCP specification described the transport, but there was no Alexa+-specific public harness for validating the complete host experience.
+- **Severity:** Important. It did not block a standards-compliant implementation, but it limited validation to protocol tests and an independently built Alexa+-style simulator.
+- **Workaround:** Implemented a dependency-free self-hosted MCP server, added a live in-browser inspector for `initialize` → `notifications/initialized` → `tools/list` → `tools/call`, and created thirteen automated protocol and workflow tests.
+- **Actionable suggestion:** Provide entrants with a no-account conformance harness and one complete reference project for stateful tools with explicit human approval. The harness should report lifecycle/header errors and show how the Alexa+ host presents tool results and confirmation requests.
