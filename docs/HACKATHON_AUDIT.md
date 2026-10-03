@@ -17,10 +17,10 @@ Sources: [overview](https://amazonappdev2026.devpost.com/), [official rules](htt
 
 | Criterion | Concrete evidence to show |
 |---|---|
-| Tech implementation | MCP 2025-11-25 handshake, eight callable tools, same tools in simulator, persistent case state, protocol/workflow tests. |
-| Design | Voice input when supported, reliable text fallback, citations and tool trace, separate draft/approved states, copyable brief. |
-| Potential impact | Homeowners and renters lose appliance/model/history/warranty context before service; Latchbook creates a useful handoff without making unsupported repair claims. |
-| Idea quality | Moves beyond manual Q&A: an approval-first service-case compiler with memory, provenance, and explicit non-action boundaries. |
+| Tech implementation | MCP 2025-11-25 handshake, twelve callable tools, live in-browser protocol inspector, persistent interview and case state, thirteen protocol/workflow tests. |
+| Design | Symptom-specific follow-up, voice when supported, reliable text fallback, citations, evidence-integrity panel, tool trace, clear approval state, copyable brief. |
+| Potential impact | Homeowners and renters lose appliance/model/history/warranty context before service; Latchbook creates a useful handoff and preserves household-reported outcomes without unsupported repair claims. |
+| Idea quality | Moves beyond manual Q&A: an adaptive, approval-first service-case compiler with recurring-outcome memory, provenance checks, and explicit non-action boundaries. |
 
 ## How to verify the implementation
 

@@ -1,3 +1,5 @@
+import { assessEvidence } from "./evidence.mjs";
+
 const stringField = (description, maxLength = 160) => ({ type: "string", description, maxLength });
 
 export const TOOL_DEFINITIONS = [
@@ -22,10 +24,28 @@ export const TOOL_DEFINITIONS = [
     annotations: { readOnlyHint: true },
   },
   {
+    name: "get_active_incident_intake", title: "Get current incident interview", description: "Read the household's unfinished appliance incident interview. Read-only.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true },
+  },
+  {
+    name: "start_incident_intake", title: "Start an incident interview", description: "Record the household's initial appliance report and ask a symptom-specific follow-up before drafting a case. Local state only.",
+    inputSchema: { type: "object", properties: { applianceId: stringField("Appliance ID", 60), report: stringField("Household's initial observation", 500) }, required: ["applianceId", "report"], additionalProperties: false },
+  },
+  {
+    name: "answer_incident_intake", title: "Answer incident interview", description: "Save the household's answer to the incident follow-up; this is an observation, not a verified diagnosis. Local state only.",
+    inputSchema: { type: "object", properties: { intakeId: stringField("Incident interview ID", 60), detail: stringField("Household observation, or explicitly unknown", 500) }, required: ["intakeId", "detail"], additionalProperties: false },
+  },
+  {
+    name: "assess_evidence", title: "Assess evidence quality", description: "Classify recorded sources and flag missing details, stale records, or conflicting warranty dates. Read-only; no diagnosis or coverage decision.",
+    inputSchema: { type: "object", properties: { applianceId: stringField("Appliance ID", 60), symptom: stringField("Household observations", 500), evidenceIds: { type: "array", items: stringField("Record ID", 80), maxItems: 5 } }, required: ["applianceId", "symptom", "evidenceIds"], additionalProperties: false },
+    annotations: { readOnlyHint: true },
+  },
+  {
     name: "draft_service_case", title: "Draft a service case", description: "Create a local service-case draft from a symptom and cited record IDs. Does not contact a provider or book anything.",
     inputSchema: { type: "object", properties: {
       applianceId: stringField("Appliance ID", 60), symptom: stringField("Observed symptom", 500),
       evidenceIds: { type: "array", items: stringField("Record ID", 80), maxItems: 5 },
+      intakeId: stringField("Optional completed incident interview ID", 60),
     }, required: ["applianceId", "symptom", "evidenceIds"], additionalProperties: false },
   },
   {
@@ -103,20 +123,69 @@ export async function executeTool(store, name, input = {}, { today = () => new D
     const id = args.applianceId ? clean(args.applianceId, 60, "applianceId") : null;
     return { cases: state.cases.filter((item) => !id || item.applianceId === id).slice().reverse() };
   }
+  if (name === "get_active_incident_intake") {
+    const state = await store.read();
+    return { intake: (state.intakes ?? []).findLast((item) => item.status === "awaiting detail") ?? null };
+  }
+  if (name === "start_incident_intake") {
+    const applianceId = clean(args.applianceId, 60, "applianceId");
+    const report = clean(args.report, 500, "report");
+    return store.update((state) => {
+      const appliance = applianceById(state, applianceId);
+      state.intakes ??= [];
+      const existing = state.intakes.findLast((item) => item.status === "awaiting detail" && item.applianceId === applianceId && item.report.toLowerCase() === report.toLowerCase());
+      if (existing) return { intake: existing, reused: true };
+      state.intakes.filter((item) => item.status === "awaiting detail").forEach((item) => { item.status = "superseded"; });
+      const question = /\b(leak\w*|water|wet|drip\w*)\b/i.test(report)
+        ? "Where do you see the water, and when did it appear? If you cannot tell, say unknown."
+        : /\b(drain|standing water|empty)\b/i.test(report)
+          ? "Is water still inside after the cycle, and was the removable filter checked? If you cannot tell, say unknown."
+          : `What did you observe about the ${appliance.name}, and when did it happen? If you cannot tell, say unknown.`;
+      const intake = { id: `IN-${String(state.nextId++).padStart(3, "0")}`, applianceId, report, question, detail: null, status: "awaiting detail", createdAt: new Date().toISOString() };
+      state.intakes.push(intake);
+      state.events.push({ at: intake.createdAt, type: "intake_started", caseId: null, detail: `Started ${intake.id} for ${appliance.name}.` });
+      return { intake, reused: false };
+    });
+  }
+  if (name === "answer_incident_intake") {
+    const intakeId = clean(args.intakeId, 60, "intakeId");
+    const detail = clean(args.detail, 500, "detail");
+    return store.update((state) => {
+      const intake = (state.intakes ?? []).find((item) => item.id === intakeId && item.status === "awaiting detail");
+      if (!intake) throw new Error("No active incident interview matches that ID.");
+      intake.detail = detail;
+      intake.status = "complete";
+      intake.completedAt = new Date().toISOString();
+      state.events.push({ at: intake.completedAt, type: "intake_completed", caseId: null, detail: `Recorded household detail for ${intake.id}.` });
+      return { intake };
+    });
+  }
+  if (name === "assess_evidence") {
+    const applianceId = clean(args.applianceId, 60, "applianceId");
+    const symptom = clean(args.symptom, 500, "symptom");
+    if (!Array.isArray(args.evidenceIds) || args.evidenceIds.length > 5) throw new Error("evidenceIds must be an array of at most five record IDs.");
+    const evidenceIds = [...new Set(args.evidenceIds.map((id) => clean(id, 80, "evidenceId")))];
+    return { assessment: assessEvidence(await store.read(), applianceId, symptom, evidenceIds) };
+  }
   if (name === "draft_service_case") {
     const applianceId = clean(args.applianceId, 60, "applianceId");
     const symptom = clean(args.symptom, 500, "symptom");
     if (!Array.isArray(args.evidenceIds) || args.evidenceIds.length > 5) throw new Error("evidenceIds must be an array of at most five record IDs.");
     const evidenceIds = [...new Set(args.evidenceIds.map((id) => clean(id, 80, "evidenceId")))];
+    const intakeId = args.intakeId ? clean(args.intakeId, 60, "intakeId") : null;
     return store.update((state) => {
       const appliance = applianceById(state, applianceId);
       const invalid = evidenceIds.filter((id) => !state.records.some((record) => record.id === id && record.applianceId === applianceId));
       if (invalid.length) throw new Error("A cited record does not belong to this appliance.");
+      const intake = intakeId ? (state.intakes ?? []).find((item) => item.id === intakeId && item.applianceId === applianceId && item.status === "complete") : null;
+      if (intakeId && !intake) throw new Error("A completed interview for this appliance is required.");
       const existing = state.cases.find((item) => item.applianceId === applianceId && item.status === "draft" && item.symptom.toLowerCase() === symptom.toLowerCase());
       if (existing) return { case: existing, reused: true };
+      const assessment = assessEvidence(state, applianceId, symptom, evidenceIds);
       const serviceCase = {
         id: `LB-${String(state.nextId++).padStart(3, "0")}`, applianceId, applianceName: appliance.name,
-        symptom, evidenceIds, status: "draft", createdAt: new Date().toISOString(), approvedBy: null,
+        symptom, evidenceIds, intakeId, assessment, relatedCaseIds: assessment.priorCaseIds,
+        status: "draft", createdAt: new Date().toISOString(), approvedBy: null,
         note: "Draft only. No provider has been contacted or appointment booked.",
       };
       state.cases.push(serviceCase);
@@ -147,8 +216,15 @@ export async function executeTool(store, name, input = {}, { today = () => new D
       serviceCase.status = "closed";
       serviceCase.outcome = outcome;
       serviceCase.closedAt = new Date().toISOString();
+      const outcomeRecord = {
+        id: `outcome-${state.nextId++}`, applianceId: serviceCase.applianceId, caseId, kind: "Service outcome",
+        title: `Household follow-up for ${caseId}`, recordedAt: serviceCase.closedAt.slice(0, 10),
+        text: `Household-reported service outcome for ${serviceCase.applianceName}. Original report: ${serviceCase.symptom.replace(/[.!?]+$/, "")}. Reported outcome: ${outcome.replace(/[.!?]+$/, "")}. Not independently verified.`,
+      };
+      state.records.push(outcomeRecord);
+      serviceCase.outcomeRecordId = outcomeRecord.id;
       state.events.push({ at: serviceCase.closedAt, type: "case_closed", caseId, detail: outcome });
-      return { case: serviceCase };
+      return { case: serviceCase, outcomeRecord: { id: outcomeRecord.id, title: outcomeRecord.title } };
     });
   }
   if (name === "add_home_record") {
@@ -157,7 +233,7 @@ export async function executeTool(store, name, input = {}, { today = () => new D
     const recordText = clean(args.text, 4000, "text");
     return store.update((state) => {
       applianceById(state, applianceId);
-      const record = { id: `note-${state.nextId++}`, applianceId, kind: "User note", title, text: recordText };
+      const record = { id: `note-${state.nextId++}`, applianceId, kind: "User note", title, text: recordText, recordedAt: new Date().toISOString().slice(0, 10) };
       state.records.push(record);
       state.events.push({ at: new Date().toISOString(), type: "record_added", caseId: null, detail: `Added ${record.id} for ${applianceId}.` });
       return { record: { id: record.id, applianceId, kind: record.kind, title: record.title } };

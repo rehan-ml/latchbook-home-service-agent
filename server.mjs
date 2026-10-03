@@ -81,7 +81,7 @@ export function createAppServer({ store = DEFAULT_STORE } = {}) {
 
       if (req.method === "GET" && url.pathname === "/api/state") {
         const state = await store.read();
-        return send(res, 200, { household: state.household, appliances: state.appliances, records: state.records.map(({ text, ...rest }) => ({ ...rest, excerpt: text.slice(0, 320) })), cases: state.cases, events: state.events.slice(-12).reverse() });
+        return send(res, 200, { household: state.household, appliances: state.appliances, records: state.records.map(({ text, ...rest }) => ({ ...rest, excerpt: text.slice(0, 320) })), cases: state.cases, activeIntake: (state.intakes ?? []).findLast((item) => item.status === "awaiting detail") ?? null, events: state.events.slice(-12).reverse() });
       }
       if (req.method === "POST" && url.pathname === "/api/turn") {
         const input = await bodyJson(req);

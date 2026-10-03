@@ -20,7 +20,7 @@
         <div class="hero-copy">
           <p class="eyebrow"><span class="eyebrow-line"></span> A voice-first home service agent</p>
           <h1 id="heroTitle">The problem is new.<br><em>The story shouldn't be.</em></h1>
-          <p class="hero-intro">“The washer is leaking again.” Latchbook remembers the appliance, finds the relevant home records, checks the recorded warranty date, and drafts a source-backed brief—before anyone calls a technician.</p>
+          <p class="hero-intro">“The washer is leaking again.” Latchbook asks for a useful detail, finds the home's records and earlier outcomes, checks evidence quality, and prepares a source-backed brief—before anyone calls a technician.</p>
           <div class="hero-points"><span>01 &nbsp; Say what happened</span><span>02 &nbsp; Review the evidence</span><span>03 &nbsp; Approve the brief</span></div>
         </div>
         <div class="hero-visual" aria-hidden="true">
@@ -33,7 +33,7 @@
       </section>
 
       <section class="trust-ribbon" aria-label="Product principles">
-        <div><strong>5</strong><span>tool steps per incident</span></div><div><strong>1</strong><span>explicit human approval</span></div><div><strong>0</strong><span>automatic bookings or messages</span></div>
+        <div><strong>12</strong><span>discoverable MCP tools</span></div><div><strong>1</strong><span>explicit human approval</span></div><div><strong>0</strong><span>automatic bookings or messages</span></div>
         <p>Built for a real MCP workflow. Demonstrated in a local Alexa+-style simulator—no device, account, or paid service.</p>
       </section>
 
@@ -43,7 +43,8 @@
           <div class="main-column">
             <section class="conversation panel" aria-labelledby="conversationTitle">
               <div class="panel-head"><div><span class="panel-kicker">01 / CONVERSATION</span><h3 id="conversationTitle">Ask Latchbook</h3></div><span class="connection-pill"><i></i> Local simulator</span></div>
-              <div id="messages" class="messages" aria-live="polite"><div class="message assistant"><span class="message-avatar">L</span><div><small>Latchbook</small><p>Tell me what happened at home. I'll check the records, cite what I found, and prepare a draft for your review. I won't contact anyone or book a visit.</p></div></div></div>
+              <div id="messages" class="messages" aria-live="polite"><div class="message assistant"><span class="message-avatar">L</span><div><small>Latchbook</small><p>Tell me what happened at home. I'll ask one useful follow-up, check the records, and prepare a sourced draft for your review. I won't contact anyone or book a visit.</p></div></div></div>
+              <div id="intakeBar" class="intake-bar hidden" role="status"><span>INCIDENT INTERVIEW · STEP 2 OF 2</span><strong id="intakeQuestion"></strong><button id="intakeSuggestion" type="button">Use a sample answer ↗</button></div>
               <div class="prompt-shelf"><span>TRY A SCENARIO</span><button type="button" data-prompt="The washer is leaking again">The washer is leaking again <b>↗</b></button><button type="button" data-prompt="The dishwasher will not drain">The dishwasher will not drain <b>↗</b></button><button type="button" data-prompt="What is the washer case status?">Check case status <b>↗</b></button></div>
               <form id="composer" class="composer"><label class="sr-only" for="utterance">Describe a home appliance problem</label><input id="utterance" autocomplete="off" maxlength="500" placeholder="Describe what happened at home…" required><button id="voiceButton" class="voice-button" type="button" title="Speak with browser speech recognition" aria-label="Use microphone">◉</button><button class="send-button" type="submit" aria-label="Send request">↗</button></form>
               <p id="composerError" class="form-error" role="alert"></p>
@@ -53,6 +54,8 @@
               <div class="panel-head"><div><span class="panel-kicker">02 / ACTIONABLE OUTPUT</span><h3 id="caseTitle">Service case</h3></div><span id="caseStatus" class="status-pill"></span></div>
               <div class="case-head"><div><span id="caseId" class="case-id"></span><h4 id="caseAppliance"></h4><p id="caseSymptom"></p></div><div class="case-approval"><span>HUMAN CHECKPOINT</span><strong id="approvalState">Waiting for approval</strong></div></div>
               <div class="case-grid"><div><h5>Evidence receipt</h5><div id="sourceList" class="source-list"></div></div><div><h5>Agent tool trail</h5><ol id="toolTrace" class="tool-trace"></ol></div></div>
+              <div class="evidence-audit"><div><span class="panel-kicker">EVIDENCE INTEGRITY</span><strong id="evidenceStatus">Checking sources</strong><p id="evidenceSummary"></p></div><ul id="evidenceSignals"></ul></div>
+              <div id="relatedCases" class="related-cases hidden"></div>
               <div class="case-actions"><button id="approveButton" type="button" class="primary-button">Review & approve brief <span>↗</span></button><button id="copyButton" type="button" class="outline-button" disabled>Copy approved brief</button><button id="closeButton" type="button" class="text-button" disabled>Mark resolved</button></div>
               <p class="case-disclaimer">A recorded warranty date is not a provider coverage decision. Latchbook does not diagnose, repair, contact a provider, or book a visit.</p>
             </section>
@@ -66,13 +69,15 @@
         </div>
       </section>
 
-      <section class="underhood"><div><p class="eyebrow">Why this is an agent</p><h2>Not another answer.<br><em>A better next step.</em></h2></div><div class="underhood-grid"><article><span>01</span><h3>Retrieves</h3><p>Finds the appliance and relevant local records with source IDs.</p></article><article><span>02</span><h3>Cross-checks</h3><p>Compares the recorded warranty date and past service history.</p></article><article><span>03</span><h3>Drafts</h3><p>Creates a persistent case without inventing a diagnosis or contacting anyone.</p></article><article><span>04</span><h3>Waits</h3><p>A person approves before the brief becomes shareable.</p></article></div></section>
+      <section class="inspector-section" aria-labelledby="inspectorTitle"><div class="inspector-heading"><div><p class="eyebrow">Protocol proof</p><h2 id="inspectorTitle">See the MCP server answer.</h2><p>This is a live read-only handshake with the local MCP endpoint, not a screenshot or canned response.</p></div><button id="inspectMcp" class="primary-button" type="button">Run live MCP check ↗</button></div><div class="inspector-grid"><div class="inspector-step"><span>01 / INITIALIZE</span><strong id="inspectorVersion">Awaiting check</strong><p>Negotiate protocol version 2025-11-25.</p></div><div class="inspector-step"><span>02 / DISCOVER</span><strong id="inspectorCount">— tools</strong><p>Request the server's actual tool catalogue.</p></div><div class="inspector-step"><span>03 / CALL</span><strong id="inspectorResult">Awaiting check</strong><p>Look up the fictional washer through tools/call.</p></div></div><pre id="inspectorTranscript" class="inspector-transcript" aria-live="polite">Run the check to see the JSON-RPC exchange.</pre></section>
+
+      <section class="underhood"><div><p class="eyebrow">Why this is an agent</p><h2>The home learns.<br><em>The person decides.</em></h2></div><div class="underhood-grid"><article><span>01</span><h3>Interviews</h3><p>Asks one symptom-specific question before drafting an incomplete case.</p></article><article><span>02</span><h3>Checks</h3><p>Flags missing context, old records, and conflicting warranty dates.</p></article><article><span>03</span><h3>Remembers</h3><p>Reuses household-reported service outcomes when a problem recurs.</p></article><article><span>04</span><h3>Waits</h3><p>A person approves before the brief becomes shareable.</p></article></div></section>
     </main>
     <footer><div class="brand"><span class="brand-symbol">L<span>·</span></span><span>Latchbook</span></div><p>Built for the Amazon Developer Hackathon · Alexa+ track. This is an independently built simulator and MCP server, not a deployed Alexa+ add-on.</p></footer>
   </div>
 
   <dialog id="approveDialog" class="action-dialog"><form id="approveForm" method="dialog"><span class="panel-kicker">HUMAN CHECKPOINT</span><h3>Approve this brief?</h3><p>Approval marks the local case ready to copy. It does not send anything or schedule service.</p><label for="confirmedBy">Your name</label><input id="confirmedBy" value="Maya" maxlength="100" required><div><button type="button" class="outline-button" data-close-dialog="approveDialog">Cancel</button><button type="submit" class="primary-button">Approve local brief</button></div></form></dialog>
-  <dialog id="closeDialog" class="action-dialog"><form id="closeForm" method="dialog"><span class="panel-kicker">CLOSE THE LOOP</span><h3>What happened?</h3><p>Record the outcome in the local decision trail.</p><label for="caseOutcome">Outcome</label><textarea id="caseOutcome" maxlength="500" rows="3" required placeholder="e.g. A technician replaced the seal."></textarea><div><button type="button" class="outline-button" data-close-dialog="closeDialog">Cancel</button><button type="submit" class="primary-button">Mark resolved</button></div></form></dialog>
+  <dialog id="closeDialog" class="action-dialog"><form id="closeForm" method="dialog"><span class="panel-kicker">CLOSE THE LOOP</span><h3>What happened?</h3><p>Your description becomes a household-recorded outcome for future incidents. Latchbook cannot independently verify it.</p><label for="caseOutcome">Outcome</label><textarea id="caseOutcome" maxlength="500" rows="3" required placeholder="e.g. A technician replaced the seal and the leak stopped."></textarea><div><button type="button" class="outline-button" data-close-dialog="closeDialog">Cancel</button><button type="submit" class="primary-button">Save outcome & resolve</button></div></form></dialog>
   <script type="module" src="/app.js"></script>
 </body>
 </html>

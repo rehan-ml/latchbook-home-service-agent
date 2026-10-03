@@ -12,3 +12,32 @@
 @media(max-width:800px){.topbar{padding:0 5%}.topbar-note{display:none}.hero{grid-template-columns:1fr}.hero-copy{padding:65px 6% 45px}.hero-visual{min-height:330px}.visual-core{top:50%}.visual-voice{left:11%;top:8%}.visual-record{right:8%;top:30%}.visual-case{left:12%;bottom:5%}.workspace-heading{display:block}.workspace-heading>p{margin-top:15px}.workspace-grid{grid-template-columns:1fr}.side-column{display:grid;grid-template-columns:1fr 1fr}.activity-panel{grid-column:1/-1}.underhood{grid-template-columns:1fr}}
 @media(max-width:560px){.topbar{height:65px}.brand{font-size:18px}.track-pill{font-size:8px;padding:8px}.hero h1{font-size:43px}.hero-intro{font-size:13px}.hero-points span{font-size:9px}.hero-visual{min-height:290px}.visual-card{min-width:132px}.visual-card strong{font-size:13px}.visual-core{width:75px;height:75px;font-size:57px;border-radius:21px}.trust-ribbon{gap:10px;padding:19px 5%}.trust-ribbon div{display:block}.trust-ribbon strong{font-size:27px}.trust-ribbon span{display:block}.trust-ribbon p{font-size:10px;margin-top:8px}.workspace{padding:55px 4%}.workspace-heading h2{font-size:34px}.panel-head{padding:19px}.panel-head h3{font-size:25px}.messages{padding:18px}.message{max-width:96%}.prompt-shelf{padding:0 18px 14px}.composer{margin:0 18px}.case-head{display:block;padding:20px}.case-approval{margin-top:16px}.case-grid{grid-template-columns:1fr;padding:20px}.case-actions{padding:0 20px}.case-disclaimer{margin:17px 20px 20px}.side-column{display:flex}.underhood{padding:55px 5%}.underhood-grid{gap:15px}footer{display:block}footer p{text-align:left;margin-top:18px}.connection-pill{font-size:8px}}
 @media(max-width:350px){.track-pill{display:none}.connection-pill{font-size:7px;padding:6px}.hero h1{font-size:39px}}
+
+.intake-bar{margin:0 26px 18px;padding:16px 18px;border:1px solid #b9d9c9;border-radius:13px;background:#edf8f0;display:grid;gap:7px}
+.intake-bar span{font-size:9px;font-weight:700;letter-spacing:.12em;color:#33725d}
+.intake-bar strong{font:500 17px/1.35 var(--serif);color:var(--ink)}
+.intake-bar button{justify-self:start;padding:0;border:0;background:none;color:#2e7257;font-size:10px;font-weight:700;text-decoration:underline}
+.evidence-audit{margin:0 26px 24px;border:1px solid #d3dfd6;border-radius:12px;background:#f7faf6;padding:16px 18px}
+.evidence-audit h5{margin:0 0 7px;text-transform:uppercase;letter-spacing:.12em;font-size:9px}
+.evidence-audit .panel-kicker{display:block;margin-bottom:6px}
+.evidence-audit strong{font:500 18px var(--serif)}
+.evidence-audit p{font-size:10px;color:var(--muted);line-height:1.5;margin:7px 0}
+.evidence-audit ul{margin:9px 0 0;padding-left:17px;color:#536963;font-size:10px;line-height:1.5}
+.evidence-audit li+li{margin-top:5px}
+.evidence-audit li strong{font:700 9px var(--sans);text-transform:uppercase;margin-right:7px;color:#89552e}
+.related-cases{margin:0 26px 22px;padding-top:16px;border-top:1px solid var(--line)}
+.related-cases span{display:block;margin-bottom:6px;font-size:9px;letter-spacing:.12em;font-weight:700;color:var(--orange)}
+.related-cases strong{font:500 16px var(--serif)}
+.related-cases p{margin:0;color:var(--muted);font-size:10px;line-height:1.5}
+.inspector-section{padding:64px 5% 75px;background:#fbfaf5;border-top:1px solid var(--line)}
+.inspector-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:25px}
+.inspector-heading h2{font:500 clamp(32px,3.3vw,50px)/1.1 var(--serif);letter-spacing:-.04em;margin:0}
+.inspector-heading p:not(.eyebrow){font-size:11px;line-height:1.6;color:var(--muted);max-width:520px}
+.inspector-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.inspector-step{padding:18px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.inspector-step span{display:block;font-size:9px;font-weight:700;letter-spacing:.13em;color:var(--orange);margin-bottom:10px}
+.inspector-step strong{font:500 21px var(--serif);overflow-wrap:anywhere}
+.inspector-step p{font-size:10px;line-height:1.5;color:var(--muted);margin:8px 0 0}
+.inspector-transcript{white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px;overflow:auto;background:#142b30;color:#d8ece1;border-radius:14px;padding:20px;font:11px/1.6 Consolas,monospace;margin:15px 0 0}
+@media(max-width:800px){.inspector-heading{align-items:start;flex-direction:column}.inspector-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.intake-bar{margin:0 18px 15px}.evidence-audit,.related-cases{margin-left:20px;margin-right:20px}.inspector-section{padding:54px 5%}}

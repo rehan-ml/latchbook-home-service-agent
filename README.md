@@ -4,7 +4,7 @@
 
 Latchbook is a local, voice-first home service agent built for the Alexa+ track of the 2026 Amazon Developer Hackathon. It has a real Model Context Protocol (MCP) Streamable HTTP endpoint implementing protocol version `2025-11-25`, plus an independent web simulator that shows the same tool workflow. It does **not** claim to be a deployed Alexa+ add-on or to use gated Alexa+ developer tools.
 
-The agent identifies an appliance, retrieves relevant home records, checks the recorded warranty date, reviews case history, and drafts a service case. A human must explicitly approve before the brief is marked shareable. Nothing is sent, booked, purchased, or changed outside this local application.
+The agent asks a symptom-specific follow-up when a report is incomplete, identifies the appliance, retrieves home records and earlier service outcomes, checks the recorded warranty date, audits evidence quality, and drafts a service case. A human must explicitly approve before the brief is marked shareable. Nothing is sent, booked, purchased, or changed outside this local application.
 
 ## Why this is more than Q&A
 
@@ -17,26 +17,29 @@ The simulator's natural-language router is intentionally narrow and deterministi
 | Capability | Implementation |
 |---|---|
 | Alexa+ track technology | Self-hosted MCP Streamable HTTP endpoint using protocol `2025-11-25` |
-| Agent workflow | Five sequential tool calls from appliance identification to persistent case draft |
-| Available tools | Eight discoverable MCP tools with JSON Schema inputs and structured output |
-| Memory | Persistent household records, service cases, approval state, and event history |
-| Provenance | Every case carries record IDs, excerpts, and a visible tool trail |
+| Agent workflow | Adaptive incident interview, source retrieval, evidence audit, and persistent draft |
+| Available tools | Twelve discoverable MCP tools with JSON Schema inputs and structured output |
+| Memory | Persistent interviews, records, case outcomes, approval state, and event history |
+| Provenance | Every new case carries record IDs, an evidence assessment, related-case IDs, and a visible tool trail |
 | Human control | Speech or text cannot approve a case; the export route also enforces approval |
 | Cost | No API key, runtime dependency, account, cloud service, or physical device |
-| Verification | Eleven automated protocol, security, persistence, and workflow tests |
+| Verification | Thirteen automated protocol, security, persistence, and workflow tests |
 
 ## How the workflow fits together
 
 ```mermaid
 flowchart LR
-    A[Voice or typed observation] --> B[Find appliance]
-    B --> C[Retrieve local records]
-    C --> D[Check recorded warranty date]
-    D --> E[Read prior case state]
+    A[Voice or typed observation] --> B{Enough detail?}
+    B -->|No| C[Ask one targeted follow-up]
+    B -->|Yes| D[Retrieve local records and prior outcomes]
+    C --> D
+    D --> E[Check warranty and evidence quality]
     E --> F[Draft cited service case]
     F --> G{Human review}
     G -->|Approve| H[Copyable service brief]
     G -->|Do not approve| I[Draft remains local]
+    H --> J[Household records outcome after resolution]
+    J --> D
 ```
 
 This is deliberately a handoff workflow rather than an automated repair or marketplace flow. The agent compiles what the household knows, preserves uncertainty, and stops at the point where a person should decide what happens next.
@@ -49,9 +52,13 @@ This is deliberately a handoff workflow rather than an automated repair or marke
 | `search_home_records` | Retrieve relevant manual, warranty, incident, and user-note evidence | Read only |
 | `check_warranty` | Compare today with the locally recorded warranty end date | Read only; never decides coverage |
 | `list_service_cases` | Read persistent draft, approved, and closed cases | Read only |
+| `get_active_incident_intake` | Recover an unfinished incident interview | Read only |
+| `start_incident_intake` | Save the first report and ask a symptom-specific follow-up | Local state only |
+| `answer_incident_intake` | Record the household's follow-up observation | Local state only |
+| `assess_evidence` | Flag missing context, stale records, and conflicting warranty notes | Read only; never diagnoses |
 | `draft_service_case` | Create a case using an observed symptom and valid record IDs | Local state only |
 | `approve_service_case` | Mark a reviewed draft ready to copy | Requires explicit human confirmation |
-| `close_service_case` | Save the user-provided resolution of an approved case | Requires explicit human confirmation |
+| `close_service_case` | Save a household-reported outcome as a citable record | Requires explicit human confirmation |
 | `add_home_record` | Add a user-provided plain-text note for later retrieval | Local state only |
 
 ## Why the approval boundary matters
@@ -78,7 +85,7 @@ Open <http://127.0.0.1:8787>. The server binds to localhost only. Typed input wo
 npm test
 ```
 
-The tests verify MCP initialization, tool discovery and invocation, strict local-origin/version handling, the five-tool agent sequence, persistence, citations, warranty caveats, approval gating, and user-added record retrieval.
+The tests verify MCP initialization, tool discovery and invocation, strict local-origin/version handling, the incident interview, evidence checks, outcome learning, persistence, citations, warranty caveats, approval gating, and user-added record retrieval.
 
 ### Test coverage
 
@@ -87,12 +94,14 @@ The suite exercises the real HTTP server and isolated temporary data stores. It 
 - MCP `2025-11-25` negotiation, initialization notification, tool discovery, and tool calls.
 - Local `Host`, `Origin`, content type, `Accept`, and protocol-version enforcement.
 - The same persistent workflow through the simulator API.
-- Five-step orchestration with cited evidence.
+- Two-turn orchestration with cited evidence and an evidence assessment.
 - Approval-gated export and protection against double approval.
 - Warranty-date caveats without coverage promises.
 - Retrieval of newly added user records.
 - Cross-turn case memory and explicit reset behavior.
 - Duplicate-draft prevention for repeated reports.
+- Reuse of a household-reported service outcome in a later recurring case.
+- Detection of conflicting and stale warranty notes.
 - Refusal of external booking/contact requests without state mutation.
 - Rejection of evidence belonging to a different appliance.
 
@@ -103,7 +112,7 @@ The suite exercises the real HTTP server and isolated temporary data stores. It 
 - Protocol version: `2025-11-25`
 - State: stateless MCP transport; household case data persists in `data/home.json`
 - Supported methods: `initialize`, `notifications/initialized`, `ping`, `tools/list`, `tools/call`
-- Tools: `find_appliance`, `search_home_records`, `check_warranty`, `list_service_cases`, `draft_service_case`, `approve_service_case`, `close_service_case`, `add_home_record`
+- Tools: all twelve entries in the catalogue above; use the in-app live MCP inspector to verify the endpoint's actual `initialize` → `notifications/initialized` → `tools/list` → `tools/call` exchange.
 
 The server requires both `application/json` and `text/event-stream` in the MCP POST `Accept` header, accepts the protocol-version header after initialization, returns 202 for the initialized notification, and returns 405 for GET because it does not offer SSE. It validates local `Host` and `Origin` headers; it is **not** a publicly hosted multi-user service.
 
@@ -121,19 +130,20 @@ See [architecture](docs/ARCHITECTURE.md) for the trust boundary and [hackathon a
 
 ## Demo path
 
-1. Choose **The washer is leaking again**. Watch the five real tool steps and the citations to a fictional manual and prior incident.
-2. Inspect the recorded warranty caveat and draft-only state. Ask **What is the washer case status?** to prove memory across turns.
-3. Click **Review & approve brief**, type the human approver's name, then copy the service brief. Nothing is sent externally.
-4. Add a plain-text note, ask about the appliance again, and observe the note appearing as a citable record.
-5. Try **The dishwasher will not drain** to demonstrate a second appliance with a different recorded warranty status.
+1. Choose **The washer is leaking again**. Answer the targeted follow-up with a location and timing detail, or use the sample answer.
+2. Inspect the cited manual, warranty note, prior incident, evidence-quality signals, and actual tool trail. Ask **What is the washer case status?** to prove memory across turns.
+3. Click **Review & approve brief**, enter the approver's name, and copy the brief. Nothing is sent externally.
+4. Mark the case resolved with a household-reported outcome. Report a similar leak again and see the earlier outcome cited and linked as a prior case.
+5. Run the **live MCP check** to show protocol negotiation, twelve discoverable tools, and a real tool call. Optionally add a plain-text home note to show live retrieval.
 
 ## Repository map
 
 ```text
 src/seed.mjs        Fictional demo appliances and records
 src/store.mjs       Atomic local JSON persistence
-src/tools.mjs       The eight domain/MCP tools
-src/agent.mjs       Multi-step simulator orchestrator and brief builder
+src/evidence.mjs    Evidence integrity checks and provenance signals
+src/tools.mjs       The twelve domain/MCP tools
+src/agent.mjs       Adaptive simulator orchestrator and brief builder
 src/mcp.mjs         MCP 2025-11-25 JSON-RPC lifecycle and tool dispatch
 server.mjs          Local HTTP app, simulator routes, and /mcp endpoint
 public/             Responsive voice/text/visual simulator

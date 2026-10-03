@@ -47,6 +47,9 @@ test("negotiates MCP 2025-11-25 and exposes functional tools", async () => withS
 
   const listed = await mcp(base, "tools/list", {});
   const names = (await listed.json()).result.tools.map((tool) => tool.name);
+  assert.equal(names.length, 12);
+  assert.ok(names.includes("start_incident_intake"));
+  assert.ok(names.includes("assess_evidence"));
   assert.ok(names.includes("draft_service_case"));
   assert.ok(names.includes("approve_service_case"));
 
@@ -69,12 +72,20 @@ test("simulator API runs the same persistent workflow", async () => withServer(a
   });
   assert.equal(turn.status, 200);
   const data = await turn.json();
-  assert.equal(data.case.status, "draft");
+  assert.equal(data.stage, "interview");
+  assert.equal(data.case, null);
+  const followup = await fetch(`${base}/api/turn`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ utterance: "Standing water remains inside after the cycle." }),
+  });
+  const completed = await followup.json();
+  assert.equal(completed.case.status, "draft");
   const state = await (await fetch(`${base}/api/state`)).json();
   assert.equal(state.cases.length, 1);
+  assert.equal(state.activeIntake, null);
   assert.equal(state.records[0].text, undefined);
   assert.ok(state.records[0].excerpt);
-  assert.equal((await fetch(`${base}/api/brief?id=${data.case.id}`)).status, 400);
+  assert.equal((await fetch(`${base}/api/brief?id=${completed.case.id}`)).status, 400);
   const page = await (await fetch(base)).text();
   assert.match(page, /Latchbook/);
 }));
